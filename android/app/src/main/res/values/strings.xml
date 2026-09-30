@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NATAN ADMIN</string>
+    <string name="title_activity_main">NATAN ADMIN</string>
+    <string name="package_name">com.natan.admin</string>
+    <string name="custom_url_scheme">com.natan.admin</string>
+</resources>

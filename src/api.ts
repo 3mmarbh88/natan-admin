@@ -1,0 +1,144 @@
+﻿const API_URL =
+  "https://natan-server.onrender.com";
+
+async function request(
+  path: string,
+  options: RequestInit = {}
+) {
+  const token = localStorage.getItem("natan_admin_token");
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("natan_admin_token");
+    }
+
+    throw new Error(
+      data.message ||
+        data.error ||
+        `HTTP ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+export async function checkServer() {
+  return request("/api/health");
+}
+
+export async function adminLogin(
+  username: string,
+  password: string
+) {
+  const result = await request(
+    "/api/admin/login",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    }
+  );
+
+  const token =
+    result?.token ||
+    result?.accessToken ||
+    result?.data?.token ||
+    result?.data?.accessToken;
+
+  if (token) {
+    localStorage.setItem(
+      "natan_admin_token",
+      token
+    );
+  }
+
+  return result;
+}
+
+/*
+ * Verify that the currently stored admin JWT
+ * is still valid.
+ */
+export async function verifyAdminSession() {
+  return request("/api/admin/users");
+}
+
+export async function getUsers() {
+  return request("/api/admin/users");
+}
+
+export async function updateUser(
+  id: string,
+  data: {
+    username?: string;
+    email?: string | null;
+    fullName?: string | null;
+    isActive?: boolean;
+    maxDevices?: number;
+    extendDays?: number;
+    password?: string;
+  }
+) {
+  return request(
+    `/api/admin/users/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function deleteUser(id: string) {
+  return request(
+    `/api/admin/users/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+export async function getActivationCodes() {
+  return request(
+    "/api/admin/activation-codes"
+  );
+}
+
+export async function createActivationCodes(
+  durationDays: number,
+  count: number
+) {
+  return request(
+    "/api/admin/activation-codes",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        durationDays,
+        count,
+      }),
+    }
+  );
+}
+
+export function adminLogout() {
+  localStorage.removeItem(
+    "natan_admin_token"
+  );
+}
+

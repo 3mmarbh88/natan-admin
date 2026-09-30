@@ -1,0 +1,25 @@
+﻿samples = [
+    "\u0637\u00ad\u0637\u00af\u0637\u00ab \u0637\u00ae\u0637\u00b7\u0637\u00a3",
+    "\u0637\u06be\u0638\u2026 \u0637\u0637\u00b3\u0637\u00ac\u0638\u0670\u0638\u202c \u0637\u00a7\u0638\u201e\u0637\u00af\u0637\u00ae\u0638\u02c6\u0637\u201e \u0637\u00a8\u0638\u2020\u0637\u00ac\u0637\u00a7\u0637\u00ad",
+    "\u0637\u00a7\u0637\u00b3\u0638\u2026 \u0637\u00a7\u0638\u201e\u0638\u2026\u0637\u00b3\u0637\u00b7\u0637\u00ae\u0637\u00af\u0638\u2026",
+    "\u0638\u0192\u0638\u201e\u0638\u2026\u0637\u00a9 \u0637\u00a7\u0638\u201e\u0638\u2026\u0637\u00b1\u0638\u2020\u0637\u00b1"
+]
+
+def repair(s):
+    # تحويل الحرفين اللذين ثبت أنهما طبقة mojibake
+    table = {
+        "\u0637": "\u00d8",
+        "\u0638": "\u00d9"
+    }
+
+    intermediate = "".join(table.get(ch, ch) for ch in s)
+
+    try:
+        return intermediate.encode("latin1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return s
+
+for x in samples:
+    print("ORIGINAL:", x)
+    print("RESULT  :", repair(x))
+    print("---")
