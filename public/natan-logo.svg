@@ -1,271 +1,333 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Background Gradient -->
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0f24"/>
-      <stop offset="50%" stop-color="#070a1a"/>
-      <stop offset="100%" stop-color="#040610"/>
+    <!-- Background Gradients -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a1020"/>
+      <stop offset="50%" stop-color="#070c18"/>
+      <stop offset="100%" stop-color="#04070e"/>
     </linearGradient>
 
-    <!-- Border Gradient -->
-    <linearGradient id="borderGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="40%" stop-color="#1d4ed8"/>
-      <stop offset="80%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
+    <!-- Outer Rim Glow Gradient -->
+    <linearGradient id="rim-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="50%" stop-color="#0066ff"/>
+      <stop offset="100%" stop-color="#0033aa"/>
     </linearGradient>
 
-    <!-- Neon Cyan Glow -->
-    <linearGradient id="cyanGlow" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00f0ff"/>
-      <stop offset="100%" stop-color="#0066ff"/>
-    </linearGradient>
+    <!-- Halo Glow Gradient -->
+    <radialGradient id="halo-glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#0077ff" stop-opacity="0.6"/>
+      <stop offset="75%" stop-color="#0044ff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#002288" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Ninja Head Shading -->
+    <radialGradient id="ninja-head" cx="42%" cy="32%" r="65%">
+      <stop offset="0%" stop-color="#404654"/>
+      <stop offset="35%" stop-color="#222630"/>
+      <stop offset="70%" stop-color="#141720"/>
+      <stop offset="100%" stop-color="#0c0e14"/>
+    </radialGradient>
 
     <!-- Purple Headband Gradient -->
-    <linearGradient id="purpleBand" x1="0" y1="0" x2="1" y2="0.8">
-      <stop offset="0%" stop-color="#a855f7"/>
-      <stop offset="50%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#6d28d9"/>
+    <linearGradient id="purple-band" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="35%" stop-color="#a855f7"/>
+      <stop offset="70%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#9333ea"/>
     </linearGradient>
 
-    <!-- Ribbon Highlight -->
-    <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="ribbon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#a855f7"/>
       <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
 
-    <!-- Ninja Skin/Mask Gradient -->
-    <linearGradient id="ninjaHead" x1="0.3" y1="0" x2="0.7" y2="1">
-      <stop offset="0%" stop-color="#2a2e43"/>
-      <stop offset="45%" stop-color="#181a29"/>
-      <stop offset="100%" stop-color="#0c0e18"/>
-    </linearGradient>
-
-    <linearGradient id="faceSkin" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffdfba"/>
-      <stop offset="100%" stop-color="#f5c296"/>
-    </linearGradient>
+    <!-- Eye Gradient -->
+    <radialGradient id="eye-pupil" cx="45%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#2a2e3d"/>
+      <stop offset="70%" stop-color="#0e1017"/>
+      <stop offset="100%" stop-color="#050608"/>
+    </radialGradient>
 
     <!-- Server Rack Gradient -->
-    <linearGradient id="serverGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#0f1424"/>
-      <stop offset="50%" stop-color="#192038"/>
-      <stop offset="100%" stop-color="#0c101d"/>
+    <linearGradient id="server-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#182030"/>
+      <stop offset="25%" stop-color="#28344c"/>
+      <stop offset="75%" stop-color="#1c2538"/>
+      <stop offset="100%" stop-color="#101624"/>
     </linearGradient>
 
-    <!-- Blue Gear Gradient -->
-    <linearGradient id="gearGrad" x1="0" y1="0" x2="1" y2="1">
+    <!-- Laptop Gradient -->
+    <linearGradient id="laptop-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2c3446"/>
+      <stop offset="40%" stop-color="#1e2433"/>
+      <stop offset="100%" stop-color="#121620"/>
+    </linearGradient>
+
+    <!-- Shield Gradient -->
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#38bdf8"/>
       <stop offset="50%" stop-color="#0284c7"/>
       <stop offset="100%" stop-color="#0369a1"/>
     </linearGradient>
 
-    <!-- Shield Glow -->
-    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="100%" stop-color="#0284c7"/>
+    <!-- Blue Gear Gradient -->
+    <linearGradient id="gear-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="40%" stop-color="#3b82f6"/>
+      <stop offset="85%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e40af"/>
     </linearGradient>
 
-    <!-- Text 3D Gradient -->
-    <linearGradient id="textGrad" x1="0" y1="0" x2="0" y2="1">
+    <!-- Text Gradients -->
+    <linearGradient id="natan-text" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="70%" stop-color="#f1f5f9"/>
+      <stop offset="60%" stop-color="#f1f5f9"/>
       <stop offset="100%" stop-color="#cbd5e1"/>
     </linearGradient>
 
-    <linearGradient id="adminGrad" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="admin-text" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="50%" stop-color="#60a5fa"/>
+      <stop offset="50%" stop-color="#00d4ff"/>
       <stop offset="100%" stop-color="#38bdf8"/>
     </linearGradient>
 
-    <!-- Soft Filter Glow -->
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    <!-- Filters for 3D Drop Shadows & Glow -->
+    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
 
-    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="14" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    <filter id="ring-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0   0 0.8 0 0 0.9   1 1 1 0 1   0 0 0 1 0" in="blur" result="colored"/>
+      <feMerge>
+        <feMergeNode in="colored"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
 
-    <filter id="shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+    <filter id="drop-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <filter id="text-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#020617" flood-opacity="0.8"/>
     </filter>
   </defs>
 
-  <!-- Base App Icon Squircle Frame -->
-  <rect x="8" y="8" width="496" height="496" rx="108" fill="url(#bgGrad)"/>
-  <rect x="8" y="8" width="496" height="496" rx="108" fill="none" stroke="url(#borderGrad)" stroke-width="7" opacity="0.95"/>
+  <!-- SQUIRCLE BASE CONTAINER -->
+  <rect x="32" y="32" width="960" height="960" rx="230" ry="230" fill="url(#bg-grad)"/>
 
-  <!-- Top Gloss Highlight -->
-  <path d="M 40 100 C 120 40, 392 40, 472 100 C 420 150, 92 150, 40 100 Z" fill="#ffffff" opacity="0.04"/>
+  <!-- SQUIRCLE INNER GLOW & BORDER -->
+  <rect x="32" y="32" width="960" height="960" rx="230" ry="230" fill="none" stroke="url(#rim-grad)" stroke-width="12" opacity="0.9"/>
+  <rect x="42" y="42" width="940" height="940" rx="222" ry="222" fill="none" stroke="#00f0ff" stroke-width="3" opacity="0.45"/>
 
-  <!-- Ambient Neon Backlight Halo -->
-  <circle cx="256" cy="225" r="150" fill="none" stroke="#0077ff" stroke-width="18" opacity="0.45" filter="url(#softGlow)"/>
-  <circle cx="256" cy="225" r="142" fill="none" stroke="#00d8ff" stroke-width="6" opacity="0.85" filter="url(#glow)"/>
+  <!-- CLIPPING FOR INNER CONTENTS -->
+  <g clip-path="url(#icon-clip)">
+    <clipPath id="icon-clip">
+      <rect x="36" y="36" width="952" height="952" rx="226" ry="226"/>
+    </clipPath>
 
-  <!-- Left Server Rack -->
-  <g id="leftServer">
-    <rect x="75" y="125" width="95" height="185" rx="12" fill="url(#serverGrad)" stroke="#1e293b" stroke-width="3"/>
-    <!-- Server Units -->
-    <rect x="83" y="137" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="95" cy="153" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="105" y="151" width="22" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-    <rect x="133" y="151" width="18" height="4" rx="2" fill="#1d4ed8"/>
+    <!-- AMBIENT BLUE BACKLIGHT -->
+    <circle cx="512" cy="420" r="380" fill="url(#halo-glow)" opacity="0.65"/>
 
-    <rect x="83" y="177" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="95" cy="193" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="105" y="191" width="28" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-    <rect x="139" y="191" width="12" height="4" rx="2" fill="#1d4ed8"/>
+    <!-- NEON CYAN RING / HALO BEHIND CHARACTER -->
+    <circle cx="512" cy="410" r="310" fill="none" stroke="#00e5ff" stroke-width="16" filter="url(#ring-glow)"/>
+    <circle cx="512" cy="410" r="310" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.8"/>
 
-    <rect x="83" y="217" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="95" cy="233" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="105" y="231" width="16" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-    <rect x="127" y="231" width="24" height="4" rx="2" fill="#1d4ed8"/>
-
-    <rect x="83" y="257" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="95" cy="273" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="105" y="271" width="25" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-  </g>
-
-  <!-- Right Server Rack -->
-  <g id="rightServer">
-    <rect x="342" y="135" width="95" height="175" rx="12" fill="url(#serverGrad)" stroke="#1e293b" stroke-width="3"/>
-    <rect x="350" y="147" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="416" cy="163" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="362" y="161" width="24" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-    <rect x="392" y="161" width="16" height="4" rx="2" fill="#1d4ed8"/>
-
-    <rect x="350" y="187" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="416" cy="203" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="362" y="201" width="18" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-    <rect x="386" y="201" width="22" height="4" rx="2" fill="#1d4ed8"/>
-
-    <rect x="350" y="227" width="79" height="32" rx="5" fill="#0b0f1a" stroke="#253248" stroke-width="1.5"/>
-    <circle cx="416" cy="243" r="3.5" fill="#38bdf8" filter="url(#glow)"/>
-    <rect x="362" y="241" width="28" height="4" rx="2" fill="#38bdf8" opacity="0.9"/>
-  </g>
-
-  <!-- Ninja Body / Shoulders -->
-  <g id="ninjaBody">
-    <!-- Dark Torso -->
-    <path d="M 175 320 C 185 245, 327 245, 337 320 Z" fill="#111524" stroke="#1f273d" stroke-width="3"/>
-    <!-- Purple Gi Collars -->
-    <path d="M 220 230 L 256 278 L 292 230 L 268 225 L 256 242 L 244 225 Z" fill="url(#purpleBand)"/>
-    <path d="M 205 240 L 256 305 L 307 240" fill="none" stroke="#7c3aed" stroke-width="5" stroke-linecap="round"/>
-  </g>
-
-  <!-- Flowing Purple Ribbon Tails (Top-Right) -->
-  <g id="ninjaRibbons" filter="url(#shadowFilter)">
-    <!-- Main Ribbon 1 -->
-    <path d="M 330 110 C 375 75, 410 85, 430 70 C 418 90, 420 115, 395 125 C 365 135, 345 120, 330 110 Z" fill="url(#ribbonGrad)"/>
-    <!-- Ribbon 2 -->
-    <path d="M 325 125 C 360 115, 385 130, 425 135 C 390 155, 355 145, 325 125 Z" fill="#6d28d9"/>
-    <!-- Ribbon Knot -->
-    <ellipse cx="328" cy="120" rx="14" ry="16" fill="url(#purpleBand)" stroke="#581c87" stroke-width="2"/>
-  </g>
-
-  <!-- Ninja Head -->
-  <g id="ninjaHeadGroup" filter="url(#shadowFilter)">
-    <!-- Round Head Base -->
-    <circle cx="256" cy="165" r="88" fill="url(#ninjaHead)"/>
-
-    <!-- Purple Headband -->
-    <path d="M 170 148 C 210 132, 302 132, 342 148 L 340 192 C 300 178, 212 178, 172 192 Z" fill="url(#purpleBand)"/>
-    <path d="M 170 148 C 210 132, 302 132, 342 148" fill="none" stroke="#c084fc" stroke-width="3" opacity="0.7"/>
-
-    <!-- Face Eye Opening (Skin) -->
-    <path d="M 188 178 C 212 168, 300 168, 324 178 C 324 195, 300 205, 256 205 C 212 205, 188 195, 188 178 Z" fill="url(#faceSkin)"/>
-
-    <!-- Expressive Eyes -->
-    <!-- Left Eye -->
-    <g id="leftEye">
-      <!-- Dark Mask/Eyebrow Angled -->
-      <path d="M 198 171 Q 220 166 234 174" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-      <!-- Eye White -->
-      <ellipse cx="218" cy="183" rx="13" ry="14" fill="#ffffff"/>
-      <!-- Iris / Pupil -->
-      <ellipse cx="221" cy="183" rx="9" ry="11" fill="#0f172a"/>
-      <!-- Eye Sparkle / Catchlight -->
-      <circle cx="224" cy="179" r="4" fill="#ffffff"/>
-      <circle cx="218" cy="187" r="1.8" fill="#ffffff"/>
+    <!-- LEFT SERVER RACK -->
+    <g transform="translate(140, 240)" filter="url(#drop-shadow)">
+      <!-- Server Cabinet Body -->
+      <rect x="0" y="0" width="180" height="420" rx="16" fill="url(#server-grad)" stroke="#1e293b" stroke-width="4"/>
+      <!-- Server Blades & Cyan Status LEDs -->
+      <g fill="#111827">
+        <rect x="12" y="18" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="80" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="142" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="204" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="266" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="328" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+      </g>
+      <!-- Glowing Blue Dashes / Indicator Lights -->
+      <g fill="#00d4ff" filter="url(#neon-glow)">
+        <rect x="26" y="38" width="12" height="12" rx="3"/>
+        <rect x="46" y="42" width="40" height="6" rx="3"/>
+        <rect x="26" y="100" width="12" height="12" rx="3"/>
+        <rect x="46" y="104" width="30" height="6" rx="3"/>
+        <rect x="26" y="162" width="12" height="12" rx="3"/>
+        <rect x="46" y="166" width="50" height="6" rx="3"/>
+        <rect x="26" y="224" width="12" height="12" rx="3"/>
+        <rect x="46" y="228" width="36" height="6" rx="3"/>
+        <rect x="26" y="286" width="12" height="12" rx="3"/>
+        <rect x="46" y="290" width="44" height="6" rx="3"/>
+        <rect x="26" y="348" width="12" height="12" rx="3"/>
+        <rect x="46" y="352" width="32" height="6" rx="3"/>
+      </g>
     </g>
 
-    <!-- Right Eye -->
-    <g id="rightEye">
-      <!-- Eyebrow Angled -->
-      <path d="M 314 171 Q 292 166 278 174" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-      <!-- Eye White -->
-      <ellipse cx="294" cy="183" rx="13" ry="14" fill="#ffffff"/>
-      <!-- Iris / Pupil -->
-      <ellipse cx="291" cy="183" rx="9" ry="11" fill="#0f172a"/>
-      <!-- Eye Sparkle -->
-      <circle cx="294" cy="179" r="4" fill="#ffffff"/>
-      <circle cx="288" cy="187" r="1.8" fill="#ffffff"/>
+    <!-- RIGHT SERVER RACK -->
+    <g transform="translate(704, 240)" filter="url(#drop-shadow)">
+      <!-- Server Cabinet Body -->
+      <rect x="0" y="0" width="180" height="420" rx="16" fill="url(#server-grad)" stroke="#1e293b" stroke-width="4"/>
+      <!-- Server Blades -->
+      <g fill="#111827">
+        <rect x="12" y="18" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="80" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="142" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="204" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="266" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+        <rect x="12" y="328" width="156" height="52" rx="8" fill="#172033" stroke="#253248" stroke-width="2"/>
+      </g>
+      <!-- Glowing Blue Dashes / Indicator Lights -->
+      <g fill="#00d4ff" filter="url(#neon-glow)">
+        <rect x="142" y="38" width="12" height="12" rx="3"/>
+        <rect x="94" y="42" width="40" height="6" rx="3"/>
+        <rect x="142" y="100" width="12" height="12" rx="3"/>
+        <rect x="104" y="104" width="30" height="6" rx="3"/>
+        <rect x="142" y="162" width="12" height="12" rx="3"/>
+        <rect x="84" y="166" width="50" height="6" rx="3"/>
+        <rect x="142" y="224" width="12" height="12" rx="3"/>
+        <rect x="98" y="228" width="36" height="6" rx="3"/>
+        <rect x="142" y="286" width="12" height="12" rx="3"/>
+        <rect x="90" y="290" width="44" height="6" rx="3"/>
+        <rect x="142" y="348" width="12" height="12" rx="3"/>
+        <rect x="102" y="352" width="32" height="6" rx="3"/>
+      </g>
     </g>
 
-    <!-- Lower Ninja Mask Contour -->
-    <path d="M 172 192 C 172 245, 340 245, 340 192 C 300 215, 212 215, 172 192 Z" fill="#141829" stroke="#1e243d" stroke-width="2"/>
-  </g>
+    <!-- NINJA CHARACTER -->
+    <g id="ninja" filter="url(#drop-shadow)">
+      <!-- Shoulders / Gi Body -->
+      <path d="M 330 520 Q 512 480 694 520 L 730 680 L 294 680 Z" fill="#141822"/>
+      <path d="M 440 505 L 512 590 L 584 505" fill="#7c3aed" opacity="0.8"/>
+      <path d="M 460 505 L 512 565 L 564 505" fill="#1e2433"/>
 
-  <!-- Laptop (In Front of Ninja) -->
-  <g id="laptop" filter="url(#shadowFilter)">
-    <!-- Screen Lid Base -->
-    <path d="M 148 238 L 332 244 L 320 330 L 160 326 Z" fill="#1b2137" stroke="#334155" stroke-width="3"/>
-    <!-- Screen Back Center -->
-    <path d="M 154 243 L 326 248 L 315 324 L 165 321 Z" fill="#111628"/>
+      <!-- Head Base (3D Sphere) -->
+      <ellipse cx="512" cy="300" rx="195" ry="195" fill="url(#ninja-head)"/>
 
-    <!-- Glowing Blue Shield on Laptop Lid -->
-    <g filter="url(#glow)">
-      <!-- Shield Outline -->
-      <path d="M 240 258 L 260 258 C 275 258, 278 274, 278 288 C 278 304, 260 316, 250 320 C 240 316, 222 304, 222 288 C 222 274, 225 258, 240 258 Z" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linejoin="round"/>
-      <!-- 3 Horizontal Server Blades inside Shield -->
-      <rect x="233" y="272" width="34" height="4.5" rx="2" fill="#38bdf8"/>
-      <rect x="233" y="282" width="34" height="4.5" rx="2" fill="#38bdf8"/>
-      <rect x="233" y="292" width="34" height="4.5" rx="2" fill="#38bdf8"/>
+      <!-- Head Specular Highlight Top Left -->
+      <ellipse cx="440" cy="180" rx="95" ry="45" fill="#ffffff" opacity="0.12" transform="rotate(-15, 440, 180)"/>
+
+      <!-- Face Mask Cutout (Face Skin Tone) -->
+      <path d="M 355 260 Q 512 285 669 260 Q 675 355 645 375 Q 512 400 379 375 Q 349 355 355 260 Z" fill="#f8bb9e"/>
+      <path d="M 355 260 Q 512 285 669 260 Q 675 320 645 355 Q 512 385 379 355 Q 349 320 355 260 Z" fill="#f49b78" opacity="0.45"/>
+
+      <!-- Ninja Lower Mask (Black Cloth covering mouth/chin) -->
+      <path d="M 345 340 Q 512 360 679 340 Q 670 470 512 485 Q 354 470 345 340 Z" fill="#161a24" stroke="#0f121a" stroke-width="4"/>
+      <path d="M 380 348 Q 512 366 644 348" fill="none" stroke="#2a3245" stroke-width="4" opacity="0.5"/>
+
+      <!-- Determined Ninja Eyebrows -->
+      <!-- Left Brow -->
+      <path d="M 370 278 Q 430 305 478 288 Q 435 292 375 272 Z" fill="#141824"/>
+      <!-- Right Brow -->
+      <path d="M 654 278 Q 594 305 546 288 Q 589 292 649 272 Z" fill="#141824"/>
+
+      <!-- Left Eye -->
+      <g>
+        <ellipse cx="425" cy="322" rx="36" ry="38" fill="url(#eye-pupil)"/>
+        <!-- Catchlights / Reflections -->
+        <circle cx="415" cy="310" r="13" fill="#ffffff"/>
+        <circle cx="438" cy="335" r="7" fill="#ffffff" opacity="0.85"/>
+      </g>
+
+      <!-- Right Eye -->
+      <g>
+        <ellipse cx="599" cy="322" rx="36" ry="38" fill="url(#eye-pupil)"/>
+        <!-- Catchlights / Reflections -->
+        <circle cx="589" cy="310" r="13" fill="#ffffff"/>
+        <circle cx="612" cy="335" r="7" fill="#ffffff" opacity="0.85"/>
+      </g>
+
+      <!-- PURPLE HEADBAND -->
+      <g filter="url(#drop-shadow)">
+        <!-- Main Headband across forehead -->
+        <path d="M 314 268 C 314 210, 710 210, 710 268 C 710 300, 314 300, 314 268 Z" fill="url(#purple-band)"/>
+        <!-- Headband 3D Highlights -->
+        <path d="M 324 246 C 410 220, 614 220, 700 246" fill="none" stroke="#e9d5ff" stroke-width="6" opacity="0.6"/>
+        <path d="M 320 286 C 410 274, 614 274, 704 286" fill="none" stroke="#581c87" stroke-width="6" opacity="0.6"/>
+
+        <!-- Flowing Ribbon Knot and Tails on the Right -->
+        <!-- Knot -->
+        <ellipse cx="710" cy="245" rx="26" ry="24" fill="#a855f7" stroke="#7c3aed" stroke-width="4"/>
+        <ellipse cx="714" cy="242" rx="14" ry="10" fill="#c084fc" opacity="0.7"/>
+
+        <!-- Top Ribbon Wave -->
+        <path d="M 724 235 C 760 190, 810 230, 860 160 C 880 130, 830 160, 800 190 C 765 220, 730 215, 720 240 Z" fill="url(#ribbon-grad)"/>
+        <path d="M 740 215 C 785 185, 825 185, 855 155" fill="none" stroke="#e9d5ff" stroke-width="4" opacity="0.7"/>
+
+        <!-- Bottom Ribbon Wave -->
+        <path d="M 726 250 C 770 230, 810 285, 875 225 C 890 210, 840 240, 805 245 C 765 250, 740 275, 718 262 Z" fill="url(#ribbon-grad)"/>
+        <path d="M 740 246 C 778 240, 825 260, 865 222" fill="none" stroke="#e9d5ff" stroke-width="3" opacity="0.7"/>
+      </g>
     </g>
 
-    <!-- Hands Typing on Keyboard / Laptop Lip -->
-    <ellipse cx="152" cy="330" rx="14" ry="10" fill="#141829" stroke="#334155" stroke-width="2"/>
-    <ellipse cx="328" cy="332" rx="14" ry="10" fill="#141829" stroke="#334155" stroke-width="2"/>
-  </g>
+    <!-- FOREGROUND LAPTOP -->
+    <g transform="translate(260, 450)" filter="url(#drop-shadow)">
+      <!-- Laptop Screen Back Lid -->
+      <path d="M 36 25 Q 212 18 388 25 L 424 200 L 0 200 Z" fill="url(#laptop-grad)" stroke="#38455e" stroke-width="5"/>
+      <path d="M 44 32 Q 212 26 380 32" stroke="#64748b" stroke-width="3" fill="none" opacity="0.6"/>
 
-  <!-- Foreground Blue Gear with User Profile (Right Side) -->
-  <g id="userGear" transform="translate(376, 290)" filter="url(#shadowFilter)">
-    <!-- Gear Outer Cog Shape -->
-    <path d="
-      M -20 -55 L 20 -55 L 24 -40 L 40 -34 L 54 -46 L 76 -24 L 64 -10 L 70 6 L 85 10 L 85 42 L 70 46 L 64 62 L 76 76 L 54 98 L 40 86 L 24 92 L 20 107 L -20 107 L -24 92 L -40 86 L -54 98 L -76 76 L -64 62 L -70 46 L -85 42 L -85 10 L -70 6 L -64 -10 L -76 -24 L -54 -46 L -40 -34 L -24 -40 Z
-    " transform="scale(0.68) translate(0, -25)" fill="url(#gearGrad)" stroke="#60a5fa" stroke-width="4" stroke-linejoin="round"/>
+      <!-- Laptop Base / Hinge Bar -->
+      <rect x="-20" y="196" width="464" height="24" rx="12" fill="#141923" stroke="#252f42" stroke-width="4"/>
+      <!-- Trackpad / Base light strip -->
+      <rect x="140" y="200" width="144" height="5" rx="2" fill="#00d4ff" filter="url(#neon-glow)" opacity="0.9"/>
 
-    <!-- Gear Center Circle -->
-    <circle cx="0" cy="-17" r="32" fill="#0284c7" stroke="#93c5fd" stroke-width="2"/>
+      <!-- GLOWING EMBLEM ON LAPTOP BACK: Shield with Server Bars -->
+      <g transform="translate(162, 50)" filter="url(#neon-glow)">
+        <!-- Shield Body -->
+        <path d="M 50 0 L 95 18 C 95 65, 50 100, 50 100 C 50 100, 5 65, 5 18 Z" fill="url(#shield-grad)" stroke="#7dd3fc" stroke-width="5"/>
+        <path d="M 50 6 L 87 22 C 87 60, 50 90, 50 90 C 50 90, 13 60, 13 22 Z" fill="#0c4a6e" opacity="0.6"/>
 
-    <!-- White User Silhouette Inside Gear -->
-    <g id="userSilhouette">
-      <!-- Head -->
-      <circle cx="0" cy="-25" r="11" fill="#ffffff"/>
-      <!-- Shoulders / Torso -->
-      <path d="M -16 -8 C -16 -16, 16 -16, 16 -8 C 16 -4, -16 -4, -16 -8 Z" fill="#ffffff"/>
+        <!-- 3 Server Slot Bars Inside Shield -->
+        <rect x="26" y="32" width="48" height="10" rx="4" fill="#ffffff"/>
+        <circle cx="33" cy="37" r="2.5" fill="#0284c7"/>
+        <rect x="26" y="48" width="48" height="10" rx="4" fill="#ffffff"/>
+        <circle cx="33" cy="53" r="2.5" fill="#0284c7"/>
+        <rect x="26" y="64" width="48" height="10" rx="4" fill="#ffffff"/>
+        <circle cx="33" cy="69" r="2.5" fill="#0284c7"/>
+      </g>
     </g>
-  </g>
 
-  <!-- Typography: Natan ADMIN -->
-  <g id="typography" filter="url(#shadowFilter)">
-    <!-- Main 3D Text: Natan -->
-    <!-- Extrusion Shadow -->
-    <text x="256" y="415" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="78" font-weight="900" text-anchor="middle" fill="#0a122c" letter-spacing="1">Natan</text>
-    <text x="256" y="412" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="78" font-weight="900" text-anchor="middle" fill="#1e293b" letter-spacing="1">Natan</text>
-    <!-- Crisp Face -->
-    <text x="256" y="408" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="78" font-weight="900" text-anchor="middle" fill="url(#textGrad)" letter-spacing="1">Natan</text>
+    <!-- BLUE GEAR / COG WITH USER PROFILE (RIGHT FOREGROUND) -->
+    <g transform="translate(620, 465)" filter="url(#drop-shadow)">
+      <!-- 3D Outer Gear Glow -->
+      <g filter="url(#neon-glow)">
+        <path d="
+          M 115 15 L 135 15 L 140 45 L 165 55 L 190 35 L 205 50 L 195 78 L 210 100 L 240 100 L 242 125 L 215 140 L 210 165 L 230 190 L 215 205 L 185 195 L 165 210 L 165 240 L 140 240 L 128 212 L 100 210 L 80 230 L 65 215 L 75 185 L 60 165 L 30 165 L 28 140 L 55 128 L 60 100 L 40 75 L 55 60 L 85 70 L 100 60 Z"
+          fill="url(#gear-grad)" stroke="#93c5fd" stroke-width="8"/>
+      </g>
 
-    <!-- Subtitle: — ADMIN — -->
-    <!-- Left Accent Line -->
-    <rect x="96" y="443" width="54" height="6.5" rx="3.25" fill="#38bdf8" filter="url(#glow)"/>
-    <!-- ADMIN Text -->
-    <text x="256" y="454" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="url(#adminGrad)" letter-spacing="6" filter="url(#glow)">ADMIN</text>
-    <!-- Right Accent Line -->
-    <rect x="362" y="443" width="54" height="6.5" rx="3.25" fill="#38bdf8" filter="url(#glow)"/>
+      <!-- Inner Gear Bevel Ring -->
+      <circle cx="135" cy="135" r="74" fill="#1e3a8a" stroke="#60a5fa" stroke-width="6"/>
+      <circle cx="135" cy="135" r="66" fill="#1d4ed8"/>
+
+      <!-- White User Avatar Inside Gear -->
+      <g fill="#ffffff" filter="url(#drop-shadow)">
+        <!-- Head -->
+        <circle cx="135" cy="112" r="24"/>
+        <!-- Body / Shoulders Silhouette -->
+        <path d="M 98 168 C 98 140, 114 135, 135 135 C 156 135, 172 140, 172 168 Z"/>
+      </g>
+    </g>
+
+    <!-- TYPOGRAPHY: 'Natan' & '— ADMIN —' -->
+    <g transform="translate(512, 755)" text-anchor="middle" filter="url(#text-shadow)">
+      <!-- 'Natan' Wordmark -->
+      <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Montserrat', Arial, sans-serif" font-size="140" font-weight="900" letter-spacing="-3" fill="url(#natan-text)" stroke="#090d16" stroke-width="12" paint-order="stroke fill">Natan</text>
+      <!-- Top shine on 'Natan' -->
+      <text x="0" y="-2" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Montserrat', Arial, sans-serif" font-size="140" font-weight="900" letter-spacing="-3" fill="#ffffff" opacity="0.3">Natan</text>
+
+      <!-- '— ADMIN —' Subtitle -->
+      <g transform="translate(0, 75)" filter="url(#neon-glow)">
+        <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Montserrat', Arial, sans-serif" font-size="62" font-weight="900" letter-spacing="8" fill="url(#admin-text)" stroke="#06122c" stroke-width="6" paint-order="stroke fill">— ADMIN —</text>
+      </g>
+    </g>
   </g>
 </svg>
