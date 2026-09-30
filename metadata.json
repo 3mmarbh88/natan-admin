@@ -1,0 +1,6 @@
+{
+  "name": "NATAN Admin",
+  "description": "لوحة تحكم NATAN لإدارة المستخدمين وأكواد التفعيل وحالة السيرفر - NATAN Admin Management Panel",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
