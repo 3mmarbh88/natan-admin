@@ -736,6 +736,7 @@ function App() {
   });
 
   const [showSplash, setShowSplash] = useState(true);
+  const [splashProgress, setSplashProgress] = useState(0);
 
   const [page, setPage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -934,8 +935,20 @@ function App() {
   }, [lang]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setShowSplash(false), 1500);
-    return () => window.clearTimeout(timer);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 8) + 6;
+      if (progress >= 100) {
+        progress = 100;
+        setSplashProgress(100);
+        clearInterval(interval);
+        setTimeout(() => setShowSplash(false), 320);
+      } else {
+        setSplashProgress(progress);
+      }
+    }, 60);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -1780,23 +1793,66 @@ function App() {
     codes.slice(0, 5);
 
   if (showSplash) {
+    const splashStepText =
+      splashProgress < 28
+        ? (lang === "ar" ? "جارٍ تهيئة النواة المشفرة وتأمين الاتصال..." : "Initializing encrypted core & connection...")
+        : splashProgress < 62
+        ? (lang === "ar" ? "مزامنة قاعدة البيانات وفحص استجابة الخادم..." : "Checking server response & database...")
+        : splashProgress < 90
+        ? (lang === "ar" ? "تجهيز مستشعرات بصمة الوجه (Face ID) والإصبع..." : "Preparing Face ID & biometric sensors...")
+        : (lang === "ar" ? "اكتمل التحميل • مرحباً بك في NATAN ADMIN" : "Loading complete • Welcome to NATAN ADMIN");
+
     return (
       <div className="splash-screen" role="status" aria-label="NATAN ADMIN">
         <div className="splash-content">
-          <div className="splash-logo-wrap">
-            <img
-              src="/pwa-512x512.png"
-              alt="NATAN ADMIN"
-              className="splash-logo"
-            />
+          <div className="splash-gyro-wrapper">
+            {/* Outer Cyber Dashed Orbit */}
+            <div className="splash-orbit-outer" />
+            {/* Inner Glowing Photon Orbit */}
+            <div className="splash-orbit-inner">
+              <span className="splash-photon-dot" />
+            </div>
+            {/* Soft Ambient Radial Glow */}
             <div className="splash-ring-glow" />
+
+            {/* Centered Small Logo Badge */}
+            <div className="splash-logo-card">
+              <img
+                src="/pwa-512x512.png"
+                alt="NATAN ADMIN"
+                className="splash-logo"
+              />
+            </div>
           </div>
+
           <h2 className="splash-title">NATAN ADMIN</h2>
-          <p className="splash-subtitle">لوحة تحكم وإدارة الخوادم والمستخدمين والتحقق البيومتري</p>
-          <div className="splash-loading-bar">
-            <div className="splash-loading-fill" />
+          <span className="splash-badge">CONTROL & BIOMETRICS</span>
+
+          {/* Professional Cyber Loader */}
+          <div className="splash-loader-box">
+            <div className="splash-loader-header">
+              <span className="splash-loader-label">
+                <span className="splash-blinking-dot" />
+                {splashStepText}
+              </span>
+              <span className="splash-percentage">{splashProgress}%</span>
+            </div>
+
+            <div className="splash-progress-track">
+              <div
+                className="splash-progress-fill"
+                style={{ width: `${splashProgress}%` }}
+              >
+                <span className="splash-progress-beam" />
+              </div>
+            </div>
+
+            <div className="splash-status-dots">
+              <span className={`status-led ${splashProgress >= 25 ? "active" : ""}`} />
+              <span className={`status-led ${splashProgress >= 60 ? "active" : ""}`} />
+              <span className={`status-led ${splashProgress >= 90 ? "active" : ""}`} />
+            </div>
           </div>
-          <span className="splash-status-text">جارٍ تهيئة النظام والتحقق البيومتري...</span>
         </div>
       </div>
     );
