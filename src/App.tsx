@@ -1153,36 +1153,49 @@ function App() {
 
               if (faceDetected) {
                 currentProgress += 20;
-                setFaceScanProgress(Math.min(100, currentProgress));
+                setFaceScanProgress(Math.min(85, currentProgress));
 
                 if (currentProgress < 50) {
-                  setFaceFeedbackText(lang === "ar" ? "تم تحديد الوجه... جارٍ قراءة ملامح الهوية" : "Face detected... reading biometric points");
+                  setFaceFeedbackText(lang === "ar" ? "تم رصد صورة أمام الكاميرا... جارٍ تجهيز التحقق الآمن" : "Camera image detected... preparing secure verification");
                   playBiometricAudio("scan");
                 } else if (currentProgress < 90) {
-                  setFaceFeedbackText(lang === "ar" ? "جارٍ مطابقة بصمة الوجه مع هوية الأدمن..." : "Matching biometric signature with admin profile...");
+                  setFaceFeedbackText(lang === "ar" ? "يرجى إكمال التحقق الحيوي الآمن عبر نظام أندرويد..." : "Complete secure biometric verification through Android...");
                   playBiometricAudio("scan");
                 } else {
                   clearInterval(scanTimer);
-                  setFaceScanProgress(100);
-                  const confidence = Number((98.4 + Math.random() * 1.3).toFixed(1));
-                  setFaceMatchScore(confidence);
-                  setFaceFeedbackText(lang === "ar" ? `تمت مطابقة الوجه بنجاح بنسبة ${confidence}% - مرحباً بالأدمن` : `Face matched successfully at ${confidence}% - Welcome!`);
-
-                  playBiometricAudio("success");
-                  if (typeof navigator !== "undefined" && navigator.vibrate) {
-                    navigator.vibrate([40, 60, 40]);
+                  setFaceFeedbackText(lang === "ar" ? "تأكيد الهوية عبر التحقق الحيوي الآمن بالجهاز..." : "Confirming identity with the device's secure biometric authentication...");
+                  const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+                  if (!isNative) {
+                    setFaceMatchScore(null);
+                    setFaceFeedbackText(lang === "ar" ? "لا يمكن تأكيد هوية الوجه بأمان من المتصفح فقط. استخدم تطبيق أندرويد مع التحقق الحيوي المدعوم." : "Face identity cannot be securely verified by the browser alone. Use the Android app with supported biometric authentication.");
+                    setBiometricModal((prev) => ({ ...prev, status: "failed" }));
+                    return;
                   }
 
-                  localStorage.setItem("natan_admin_face_enrolled", "true");
-
-                  setTimeout(() => {
-                    if (biometricModal.onSuccess) {
-                      biometricModal.onSuccess();
-                    }
-                  }, 550);
+                  BiometricAuth.authenticate({
+                    reason: lang === "ar" ? "تأكيد هوية مدير NATAN عبر التحقق الحيوي" : "Verify NATAN administrator identity",
+                    cancelTitle: lang === "ar" ? "إلغاء" : "Cancel",
+                    androidTitle: "NATAN ADMIN",
+                    androidSubtitle: lang === "ar" ? "أكد هويتك باستخدام وسيلة التحقق الحيوي المسجلة على الجهاز" : "Confirm your identity using the device's enrolled biometric",
+                    androidConfirmationRequired: true,
+                    allowDeviceCredential: false,
+                    androidBiometryStrength: "weak" as any,
+                  }).then(() => {
+                    setFaceScanProgress(100);
+                    setFaceMatchScore(100);
+                    setFaceFeedbackText(lang === "ar" ? "تم التحقق من الهوية بنجاح بواسطة نظام أندرويد الآمن." : "Identity verified by Android's secure biometric system.");
+                    playBiometricAudio("success");
+                    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([40, 60, 40]);
+                    localStorage.setItem("natan_admin_face_enrolled", "true");
+                    setBiometricModal((prev) => ({ ...prev, status: "success" }));
+                    setTimeout(() => biometricModal.onSuccess?.(), 550);
+                  }).catch((err: any) => {
+                    setFaceFeedbackText(err?.message || (lang === "ar" ? "لم يتم التحقق من الهوية. حاول مرة أخرى." : "Identity verification failed. Please try again."));
+                    setBiometricModal((prev) => ({ ...prev, status: "failed" }));
+                  });
                 }
               } else {
-                setFaceFeedbackText(lang === "ar" ? "يرجى توجيه وجهك أمام الكاميرا لمطابقة الملامح" : "Please align your face directly with the camera");
+                setFaceFeedbackText(lang === "ar" ? "وجّه وجهك نحو الكاميرا مع إضاءة جيدة." : "Face the camera in good lighting.");
               }
             }, 260);
           })
