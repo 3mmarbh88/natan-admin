@@ -1035,7 +1035,7 @@ function App() {
 
   async function checkBiometricAvailability() {
     try {
-      if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
+      if (mode === "fingerprint" && typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
         const result = await BiometricAuth.checkBiometry();
         setBiometricAvailable(result?.isAvailable === true);
         return;
@@ -1205,7 +1205,7 @@ function App() {
               err
             );
             setFaceCameraActive(false);
-            setFaceFeedbackText(lang === "ar" ? "تعذر فتح الكاميرا (يرجى النقر على زر التأكيد المباشر أدناه)" : "Camera unavailable (click instant confirm below)");
+            setFaceFeedbackText(lang === "ar" ? "تعذر فتح الكاميرا. تحقق من صلاحية الكاميرا ثم أعد المحاولة" : "Camera unavailable. Check camera permission and try again");
           });
       }
     }
@@ -5455,16 +5455,7 @@ function App() {
                 <div className="face-scanner-wrapper">
                   <div
                     className={`face-id-scanner-viewport ${biometricModal.status}`}
-                    onClick={() => {
-                      if (
-                        biometricModal.status === "scanning" &&
-                        biometricModal.onSuccess
-                      ) {
-                        playBiometricAudio("success");
-                        biometricModal.onSuccess();
-                      }
-                    }}
-                    title="انقر للتأكيد اليدوي السريع"
+                    title={lang === "ar" ? "يتم التحقق تلقائياً بعد فحص الكاميرا والتحقق الحيوي الآمن" : "Verification runs after camera scan and secure biometric authentication"}
                   >
                     <div className="reticle-corner tl" />
                     <div className="reticle-corner tr" />
