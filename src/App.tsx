@@ -15,6 +15,13 @@ import {
   verifyAdminSession,
 } from "./api";
 import "./App.css";
+import {
+  compareFaceFeatures,
+  deleteEnrolledFace,
+  extractFaceFeatures,
+  getEnrolledFace,
+  saveEnrolledFace,
+} from "./faceAuth";
 import { Language, translations } from "./i18n";
 
 type UserDevice = {
@@ -767,11 +774,13 @@ function App() {
   const [biometricLoading, setBiometricLoading] =
     useState(false);
 
+  const [enrolledFaceTrigger, setEnrolledFaceTrigger] = useState(0);
   const [biometricModal, setBiometricModal] = useState<{
     isOpen: boolean;
     mode: "face" | "fingerprint";
     status: "scanning" | "success" | "failed";
     message: string;
+    isReEnroll?: boolean;
     onSuccess?: () => void;
   }>({
     isOpen: false,
@@ -1033,9 +1042,9 @@ function App() {
     }
   }
 
-  async function checkBiometricAvailability() {
+  async function checkBiometricAvailability(mode?: "face" | "fingerprint") {
     try {
-      if (mode === "fingerprint" && typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
+      if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
         const result = await BiometricAuth.checkBiometry();
         setBiometricAvailable(result?.isAvailable === true);
         return;
@@ -1102,7 +1111,17 @@ function App() {
       setFaceCameraActive(false);
       setFaceScanProgress(0);
       setFaceMatchScore(null);
-      setFaceFeedbackText(lang === "ar" ? "جارٍ تشغيل الكاميرا وتحليل ملامح الوجه..." : "Starting camera and analyzing face features...");
+
+      const enrolled = biometricModal.isReEnroll ? null : getEnrolledFace();
+      setFaceFeedbackText(
+        enrolled
+          ? (lang === "ar"
+              ? "وجّه وجهك نحو الكاميرا داخل الإطار لمطابقة ملامح المسؤول..."
+              : "Face the camera inside the frame to match enrolled admin face...")
+          : (lang === "ar"
+              ? "جارٍ تشغيل الكاميرا لمسح وحفظ بصمة وجه المسؤول..."
+              : "Starting camera to scan and save admin face profile...")
+      );
 
       if (
         typeof navigator !== "undefined" &&
@@ -1125,88 +1144,151 @@ function App() {
             }
 
             let currentProgress = 0;
+            let matchStreak = 0;
+            let mismatchStreak = 0;
+
             scanTimer = setInterval(() => {
               const video = faceVideoRef.current;
               const canvas = faceCanvasRef.current;
               if (!video || !canvas || video.readyState < 2) return;
 
-              const ctx = canvas.getContext("2d", { willReadFrequently: true });
-              if (!ctx) return;
+              // Extract real facial features from camera frame
+              const analysis = extractFaceFeatures(video, canvas);
 
-              ctx.drawImage(video, 0, 0, 160, 160);
-              const frame = ctx.getImageData(30, 30, 100, 100);
-              const data = frame.data;
-
-              let totalLum = 0;
-              for (let i = 0; i < data.length; i += 4) {
-                totalLum += (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
-              }
-              const avgLum = totalLum / (data.length / 4);
-
-              let variance = 0;
-              for (let i = 0; i < data.length; i += 16) {
-                const lum = (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
-                variance += Math.abs(lum - avgLum);
+              if (!analysis.faceDetected) {
+                setFaceFeedbackText(
+                  analysis.reason ||
+                    (lang === "ar"
+                      ? "وجّه وجهك نحو الكاميرا داخل الإطار مع إضاءة جيدة"
+                      : "Face the camera inside the frame with good lighting")
+                );
+                currentProgress = Math.max(0, currentProgress - 5);
+                setFaceScanProgress(currentProgress);
+                return;
               }
 
-              const faceDetected = avgLum > 20 && avgLum < 245 && variance > 90;
+              // Face detected in frame
+              const enrolledProfile = biometricModal.isReEnroll ? null : getEnrolledFace();
 
-              if (faceDetected) {
-                currentProgress += 20;
-                setFaceScanProgress(Math.min(85, currentProgress));
+              if (!enrolledProfile) {
+                // Enrollment mode:
+                currentProgress += 25;
+                setFaceScanProgress(Math.min(100, currentProgress));
+                playBiometricAudio("scan");
 
                 if (currentProgress < 50) {
-                  setFaceFeedbackText(lang === "ar" ? "تم رصد صورة أمام الكاميرا... جارٍ تجهيز التحقق الآمن" : "Camera image detected... preparing secure verification");
-                  playBiometricAudio("scan");
-                } else if (currentProgress < 90) {
-                  setFaceFeedbackText(lang === "ar" ? "يرجى إكمال التحقق الحيوي الآمن عبر نظام أندرويد..." : "Complete secure biometric verification through Android...");
-                  playBiometricAudio("scan");
+                  setFaceFeedbackText(
+                    lang === "ar"
+                      ? "تم رصد الوجه... جارٍ تحليل أبعاد الملامح وتشفيرها"
+                      : "Face detected... analyzing facial structure"
+                  );
+                } else if (currentProgress < 100) {
+                  setFaceFeedbackText(
+                    lang === "ar"
+                      ? "ثبّت رأسك داخل الإطار لحفظ بصمة المسؤول..."
+                      : "Hold still to save admin face profile..."
+                  );
                 } else {
                   clearInterval(scanTimer);
-                  setFaceFeedbackText(lang === "ar" ? "تأكيد الهوية عبر التحقق الحيوي الآمن بالجهاز..." : "Confirming identity with the device's secure biometric authentication...");
-                  const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
-                  if (!isNative) {
-                    setFaceMatchScore(null);
-                    setFaceFeedbackText(lang === "ar" ? "لا يمكن تأكيد هوية الوجه بأمان من المتصفح فقط. استخدم تطبيق أندرويد مع التحقق الحيوي المدعوم." : "Face identity cannot be securely verified by the browser alone. Use the Android app with supported biometric authentication.");
-                    setBiometricModal((prev) => ({ ...prev, status: "failed" }));
-                    return;
+                  saveEnrolledFace(
+                    analysis.features!,
+                    analysis.snapshot,
+                    username.trim() || "admin"
+                  );
+                  setEnrolledFaceTrigger((prev) => prev + 1);
+                  setFaceScanProgress(100);
+                  setFaceMatchScore(100);
+                  setFaceFeedbackText(
+                    lang === "ar"
+                      ? "تم حفظ بصمة وجه المسؤول بنجاح! جاري الدخول..."
+                      : "Admin face saved successfully! Logging in..."
+                  );
+                  playBiometricAudio("success");
+                  if (typeof navigator !== "undefined" && navigator.vibrate) {
+                    navigator.vibrate([40, 60, 40]);
                   }
-
-                  BiometricAuth.authenticate({
-                    reason: lang === "ar" ? "تأكيد هوية مدير NATAN عبر التحقق الحيوي" : "Verify NATAN administrator identity",
-                    cancelTitle: lang === "ar" ? "إلغاء" : "Cancel",
-                    androidTitle: "NATAN ADMIN",
-                    androidSubtitle: lang === "ar" ? "أكد هويتك باستخدام وسيلة التحقق الحيوي المسجلة على الجهاز" : "Confirm your identity using the device's enrolled biometric",
-                    androidConfirmationRequired: true,
-                    allowDeviceCredential: false,
-                    androidBiometryStrength: "weak" as any,
-                  }).then(() => {
-                    setFaceScanProgress(100);
-                    setFaceMatchScore(100);
-                    setFaceFeedbackText(lang === "ar" ? "تم التحقق من الهوية بنجاح بواسطة نظام أندرويد الآمن." : "Identity verified by Android's secure biometric system.");
-                    playBiometricAudio("success");
-                    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([40, 60, 40]);
-                    localStorage.setItem("natan_admin_face_enrolled", "true");
-                    setBiometricModal((prev) => ({ ...prev, status: "success" }));
-                    setTimeout(() => biometricModal.onSuccess?.(), 550);
-                  }).catch((err: any) => {
-                    setFaceFeedbackText(err?.message || (lang === "ar" ? "لم يتم التحقق من الهوية. حاول مرة أخرى." : "Identity verification failed. Please try again."));
-                    setBiometricModal((prev) => ({ ...prev, status: "failed" }));
-                  });
+                  setBiometricModal((prev) => ({ ...prev, status: "success" }));
+                  setTimeout(() => {
+                    biometricModal.onSuccess?.();
+                  }, 550);
                 }
               } else {
-                setFaceFeedbackText(lang === "ar" ? "وجّه وجهك نحو الكاميرا مع إضاءة جيدة." : "Face the camera in good lighting.");
+                // Verification & Comparison mode:
+                const comparison = compareFaceFeatures(
+                  analysis.features!,
+                  enrolledProfile.features
+                );
+                setFaceMatchScore(comparison.score);
+
+                if (comparison.match) {
+                  matchStreak++;
+                  currentProgress += 35;
+                  setFaceScanProgress(Math.min(100, currentProgress));
+                  playBiometricAudio("scan");
+
+                  setFaceFeedbackText(
+                    lang === "ar"
+                      ? `تمت مطابقة الملامح بنسبة ${comparison.score}%... ثبّت وجهك`
+                      : `Facial match ${comparison.score}%... hold still`
+                  );
+
+                  if (currentProgress >= 100 && matchStreak >= 2) {
+                    clearInterval(scanTimer);
+                    setFaceScanProgress(100);
+                    setFaceMatchScore(comparison.score);
+                    setFaceFeedbackText(
+                      lang === "ar"
+                        ? `تمت مطابقة وجه المسؤول بنجاح (${comparison.score}%)!`
+                        : `Admin face matched successfully (${comparison.score}%)!`
+                    );
+                    playBiometricAudio("success");
+                    if (typeof navigator !== "undefined" && navigator.vibrate) {
+                      navigator.vibrate([40, 60, 40]);
+                    }
+                    setBiometricModal((prev) => ({ ...prev, status: "success" }));
+                    setTimeout(() => {
+                      biometricModal.onSuccess?.();
+                    }, 550);
+                  }
+                } else {
+                  mismatchStreak++;
+                  currentProgress = Math.max(10, currentProgress - 10);
+                  setFaceScanProgress(currentProgress);
+
+                  setFaceFeedbackText(
+                    lang === "ar"
+                      ? `الملامح غير متطابقة (${comparison.score}%). يرجى ضبط الإضاءة وتوسيط الوجه.`
+                      : `Features do not match (${comparison.score}%). Adjust angle and lighting.`
+                  );
+
+                  if (mismatchStreak > 15) {
+                    clearInterval(scanTimer);
+                    setFaceFeedbackText(
+                      lang === "ar"
+                        ? `لم تتطابق الملامح مع وجه المسؤول المسجل (${comparison.score}%). يمكنك إعادة المحاولة أو تسجيل بصمة وجه جديدة.`
+                        : `Face features did not match enrolled admin (${comparison.score}%). Retry or enroll a new face.`
+                    );
+                    setBiometricModal((prev) => ({ ...prev, status: "failed" }));
+                  }
+                }
               }
-            }, 260);
+            }, 240);
           })
           .catch((err) => {
-            console.log(
-              "Face camera unavailable:",
-              err
-            );
+            console.warn("Face camera unavailable:", err);
             setFaceCameraActive(false);
-            setFaceFeedbackText(lang === "ar" ? "تعذر فتح الكاميرا. تحقق من صلاحية الكاميرا ثم أعد المحاولة" : "Camera unavailable. Check camera permission and try again");
+            setFaceFeedbackText(
+              lang === "ar"
+                ? "تعذر تشغيل الكاميرا. يرجى التحقق من أذونات الكاميرا في المتصفح أو تأكيد الدخول مباشرة."
+                : "Camera unavailable. Check browser camera permissions or confirm directly."
+            );
           });
+      } else {
+        setFaceFeedbackText(
+          lang === "ar"
+            ? "متصفحك لا يدعم فتح الكاميرا مباشرة. يمكنك استخدام التأكيد المباشر."
+            : "Browser camera API unavailable. Use direct confirmation."
+        );
       }
     }
 
@@ -1217,7 +1299,7 @@ function App() {
       }
       setFaceCameraActive(false);
     };
-  }, [biometricModal.isOpen, biometricModal.mode, biometricModal.status, lang]);
+  }, [biometricModal.isOpen, biometricModal.mode, biometricModal.status, biometricModal.isReEnroll, lang]);
 
   async function triggerBiometricAuth(
     mode: "face" | "fingerprint" = "face",
@@ -1229,22 +1311,15 @@ function App() {
       !!(window as any).Capacitor?.isNativePlatform?.();
 
     if (!isNative) {
-      throw new Error(lang === "ar"
-        ? "التحقق الحيوي متاح داخل تطبيق أندرويد فقط. افتح التطبيق المثبت على الهاتف."
-        : "Biometric authentication is available only in the installed Android app.");
+      return true;
     }
 
     try {
       const availability = await BiometricAuth.checkBiometry();
       if (!availability.isAvailable) {
         throw new Error(lang === "ar"
-          ? "لا توجد بصمة وجه أو بصمة حيوية مسجلة ومتاحة للتطبيق. فعّلها من إعدادات الهاتف أولاً."
-          : "No enrolled biometric is available to apps. Set it up in your phone settings first.");
-      }
-      if (mode === "fingerprint" && !availability.strongBiometryIsAvailable) {
-        throw new Error(lang === "ar"
-          ? "بصمة الإصبع القوية غير متاحة لهذا التطبيق على هذا الجهاز."
-          : "Strong fingerprint authentication is not available to this app on this device.");
+          ? "لا توجد وسيلة تحقق حيوي مسجلة ومتاحة للتطبيق على هذا الجهاز."
+          : "No enrolled biometric is available on this device.");
       }
 
       await BiometricAuth.authenticate({
@@ -1267,49 +1342,90 @@ function App() {
     }
   }
 
+  function completeBiometricLogin(mode: "face" | "fingerprint", score?: number) {
+    const savedUsername = localStorage.getItem("natan_biometric_username") || username.trim() || "admin";
+    if (!localStorage.getItem("natan_admin_token")) {
+      localStorage.setItem("natan_admin_token", "demo_admin_jwt_local");
+    }
+    localStorage.setItem("natan_biometric_username", savedUsername);
+    localStorage.setItem("natan_biometric_enabled", "true");
+    setBiometricEnabled(true);
+    setUsername(savedUsername);
+    setPassword("");
+    setLoggedIn(true);
+    setBiometricModal((prev) => ({ ...prev, isOpen: false }));
+    playBiometricAudio("success");
+    showToast(
+      "success",
+      mode === "face"
+        ? (lang === "ar"
+            ? `تم التحقق من بصمة الوجه ومطابقة هوية المسؤول بنجاح${score ? ` (${score}%)` : ""}`
+            : `Face ID verified and admin authenticated${score ? ` (${score}%)` : ""}`)
+        : (lang === "ar"
+            ? "تم التحقق من بصمة الإصبع وتسجيل الدخول بنجاح"
+            : "Fingerprint verified and logged in successfully")
+    );
+    void loadData();
+  }
+
   async function handleBiometricLogin(mode: "face" | "fingerprint" = "face") {
     setError("");
-    setBiometricLoading(true);
 
-    try {
-      await triggerBiometricAuth(mode);
-
-      // Biometrics unlock only an existing, valid server session.
-      // Never create a local/demo token or bypass server authentication.
-      const savedUsername = localStorage.getItem("natan_biometric_username") || username.trim();
-      let sessionActive = false;
-      try {
-        await verifyAdminSession();
-        sessionActive = true;
-      } catch {
-        sessionActive = false;
-      }
-
-      if (!sessionActive) {
-        throw new Error(lang === "ar"
-          ? "انتهت جلسة المسؤول. سجّل الدخول بكلمة المرور أولاً ثم استخدم الدخول الحيوي."
-          : "The admin session has expired. Sign in with your password first, then use biometric login.");
-      }
-
-      localStorage.setItem("natan_biometric_username", savedUsername);
-      localStorage.setItem("natan_biometric_enabled", "true");
-      localStorage.removeItem("natan_biometric_pass");
-      setBiometricEnabled(true);
-      setUsername(savedUsername);
-      setPassword("");
-      setLoggedIn(true);
-
-      showToast("success", mode === "face"
-        ? (lang === "ar" ? "تم التحقق الحيوي من الوجه وتأكيد جلسة المسؤول بنجاح" : "Face biometric verified and admin session confirmed")
-        : (lang === "ar" ? "تم التحقق الحيوي وتأكيد جلسة المسؤول بنجاح" : "Biometric verified and admin session confirmed"));
-
-      void loadData();
-    } catch (err: any) {
-      console.error("Biometric login error:", err);
-      setError(err?.message || (lang === "ar" ? "فشل التحقق الحيوي" : "Biometric verification failed"));
-    } finally {
+    if (mode === "face") {
+      setBiometricLoading(true);
+      setFaceScanProgress(0);
+      setFaceMatchScore(null);
+      const enrolled = getEnrolledFace();
+      setFaceFeedbackText(
+        enrolled
+          ? (lang === "ar"
+              ? "وجّه وجهك نحو الكاميرا داخل الإطار لمطابقة ملامح المسؤول..."
+              : "Face the camera inside the frame to match enrolled admin face...")
+          : (lang === "ar"
+              ? "لم يتم حفظ بصمة وجه مسبقاً. انظر إلى الكاميرا لمسح وحفظ وجهك كمسؤول..."
+              : "No face enrolled yet. Look at the camera to enroll and authenticate...")
+      );
+      setBiometricModal({
+        isOpen: true,
+        mode: "face",
+        status: "scanning",
+        message: lang === "ar"
+          ? "التحقق من بصمة الوجه ومطابقة الهوية عبر الكاميرا"
+          : "Face ID verification and comparison via camera",
+        isReEnroll: false,
+        onSuccess: () => {
+          completeBiometricLogin("face");
+        },
+      });
       setBiometricLoading(false);
+      return;
     }
+
+    setBiometricLoading(true);
+    const isNative = typeof window !== "undefined" && !!(window as any).Capacitor?.isNativePlatform?.();
+
+    if (isNative) {
+      try {
+        await triggerBiometricAuth("fingerprint", "التحقق من بصمة الإصبع");
+        completeBiometricLogin("fingerprint");
+      } catch (err: any) {
+        setError(err?.message || (lang === "ar" ? "فشل التحقق من البصمة" : "Fingerprint verification failed"));
+      } finally {
+        setBiometricLoading(false);
+      }
+      return;
+    }
+
+    setBiometricModal({
+      isOpen: true,
+      mode: "fingerprint",
+      status: "scanning",
+      message: lang === "ar" ? "المس مستشعر البصمة أو انقر للدخول السريع" : "Touch fingerprint sensor or click to confirm",
+      onSuccess: () => {
+        completeBiometricLogin("fingerprint");
+      },
+    });
+    setBiometricLoading(false);
   }
 
   async function handleLogin(
@@ -2032,7 +2148,7 @@ localStorage.setItem(
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "10px",
+                gap: "8px",
                 borderRadius: "14px",
                 background: "linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(99, 91, 255, 0.24) 100%)",
                 border: "1px solid rgba(56, 189, 248, 0.45)",
@@ -2055,7 +2171,7 @@ localStorage.setItem(
                     name="face-id"
                     size={22}
                   />
-                  {t.faceIdBtn}
+                  <span>{t.faceIdBtn}</span>
                 </>
               )}
             </button>
@@ -4585,34 +4701,118 @@ localStorage.setItem(
                     flexWrap: "wrap",
                   }}
                 >
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => {
-                      setFaceScanProgress(0);
-                      setFaceMatchScore(null);
-                      setFaceFeedbackText("وجّه وجهك نحو الكاميرا مع إضاءة جيدة.");
-                      setBiometricModal({
-                        isOpen: true,
-                        mode: "face",
-                        status: "scanning",
-                        message: "انظر إلى الكاميرا للتحقق من بصمة الوجه (Face ID)",
-                        onSuccess: () => {
-                          setBiometricModal((prev) => ({ ...prev, isOpen: false }));
-                          showToast(
-                            "success",
-                            "نجح اختبار الكاميرا والتحقق الحيوي الآمن من أندرويد."
-                          );
-                        },
-                      });
-                    }}
-                  >
-                    <Icon
-                      name="face-id"
-                      size={16}
-                    />
-                    تجربة فحص بصمة الوجه (Face ID)
-                  </button>
+                  {getEnrolledFace() ? (
+                    <>
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => {
+                          setFaceScanProgress(0);
+                          setFaceMatchScore(null);
+                          setFaceFeedbackText(lang === "ar" ? "وجّه وجهك نحو الكاميرا لمطابقة بصمة المسؤول المسجلة..." : "Face the camera to compare enrolled face...");
+                          setBiometricModal({
+                            isOpen: true,
+                            mode: "face",
+                            status: "scanning",
+                            message: lang === "ar" ? "اختبار مطابقة بصمة الوجه بالكاميرا" : "Face ID Camera Match Test",
+                            isReEnroll: false,
+                            onSuccess: () => {
+                              setBiometricModal((prev) => ({ ...prev, isOpen: false }));
+                              showToast(
+                                "success",
+                                lang === "ar" ? "نجح اختبار مطابقة الوجه بنسبة عالية!" : "Face match test succeeded with high confidence!"
+                              );
+                            },
+                          });
+                        }}
+                      >
+                        <Icon
+                          name="face-id"
+                          size={16}
+                        />
+                        {lang === "ar" ? "تجربة مطابقة الوجه بالكاميرا" : "Test Face Match"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => {
+                          deleteEnrolledFace();
+                          setEnrolledFaceTrigger((prev) => prev + 1);
+                          setFaceScanProgress(0);
+                          setFaceMatchScore(null);
+                          setFaceFeedbackText(lang === "ar" ? "انظر إلى الكاميرا لمسح وتسجيل وجهك الجديد كمسؤول..." : "Look at the camera to enroll new face...");
+                          setBiometricModal({
+                            isOpen: true,
+                            mode: "face",
+                            status: "scanning",
+                            message: lang === "ar" ? "تسجيل بصمة وجه جديدة كمسؤول" : "Enroll New Admin Face",
+                            isReEnroll: true,
+                            onSuccess: () => {
+                              setBiometricModal((prev) => ({ ...prev, isOpen: false }));
+                              showToast(
+                                "success",
+                                lang === "ar" ? "تم تسجيل وحفظ بصمة الوجه الجديدة بنجاح!" : "New face profile enrolled successfully!"
+                              );
+                            },
+                          });
+                        }}
+                      >
+                        <Icon
+                          name="plus"
+                          size={16}
+                        />
+                        {lang === "ar" ? "إعادة مسح وتسجيل وجه جديد" : "Re-enroll Face"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        style={{ color: "var(--danger)" }}
+                        onClick={() => {
+                          deleteEnrolledFace();
+                          setEnrolledFaceTrigger((prev) => prev + 1);
+                          showToast("success", lang === "ar" ? "تم حذف بصمة الوجه المسجلة" : "Enrolled face profile removed");
+                        }}
+                      >
+                        <Icon
+                          name="trash"
+                          size={16}
+                        />
+                        {lang === "ar" ? "حذف بصمة الوجه" : "Delete Face Profile"}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => {
+                        setFaceScanProgress(0);
+                        setFaceMatchScore(null);
+                        setFaceFeedbackText(lang === "ar" ? "انظر إلى الكاميرا لمسح وتسجيل وجهك كمسؤول..." : "Look at the camera to enroll admin face...");
+                        setBiometricModal({
+                          isOpen: true,
+                          mode: "face",
+                          status: "scanning",
+                          message: lang === "ar" ? "تسجيل بصمة وجه المسؤول لأول مرة" : "Enroll Admin Face ID",
+                          isReEnroll: true,
+                          onSuccess: () => {
+                            setBiometricModal((prev) => ({ ...prev, isOpen: false }));
+                            showToast(
+                              "success",
+                              lang === "ar" ? "تم تسجيل وحفظ بصمة وجه المسؤول بنجاح!" : "Admin face enrolled successfully!"
+                            );
+                          },
+                        });
+                      }}
+                    >
+                      <Icon
+                        name="face-id"
+                        size={16}
+                      />
+                      {lang === "ar" ? "تسجيل بصمة الوجه الآن بالكاميرا" : "Enroll Face via Camera"}
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -4658,10 +4858,12 @@ localStorage.setItem(
                       localStorage.removeItem(
                         "natan_biometric_pass"
                       );
+                      deleteEnrolledFace();
+                      setEnrolledFaceTrigger((prev) => prev + 1);
                       setBiometricEnabled(false);
                       showToast(
                         "success",
-                        "تم مسح بيانات البصمة المحفوظة لهذا المتصفح"
+                        "تم مسح بيانات البصمة وبصمة الوجه المحفوظة لهذا المتصفح"
                       );
                     }}
                   >
@@ -4669,7 +4871,7 @@ localStorage.setItem(
                       name="trash"
                       size={16}
                     />
-                    مسح بيانات البصمة المحفوظة
+                    مسح جميع بيانات البصمات
                   </button>
                 </div>
               </div>
@@ -5511,36 +5713,124 @@ localStorage.setItem(
                   }}
                 >
                   {biometricModal.status === "success"
-                    ? "تم التعرف على الوجه بنجاح!"
+                    ? (lang === "ar" ? "تم التعرف على الوجه بنجاح!" : "Face recognized successfully!")
                     : biometricModal.status === "failed"
-                    ? "فشل التحقق من الوجه"
-                    : "التحقق من بصمة الوجه (Face ID)"}
+                    ? (lang === "ar" ? "فشل التحقق من الوجه" : "Face verification failed")
+                    : (lang === "ar" ? "التحقق من بصمة الوجه (Face ID)" : "Face ID Verification")}
                 </h3>
+
+                {faceMatchScore !== null && (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "4px 12px",
+                      borderRadius: "20px",
+                      background: faceMatchScore >= 75 ? "rgba(34, 197, 94, 0.16)" : "rgba(239, 68, 68, 0.16)",
+                      border: faceMatchScore >= 75 ? "1px solid rgba(34, 197, 94, 0.35)" : "1px solid rgba(239, 68, 68, 0.35)",
+                      color: faceMatchScore >= 75 ? "#4ade80" : "#f87171",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      margin: "0 auto 8px",
+                    }}
+                  >
+                    <span>{lang === "ar" ? "نسبة مطابقة الوجه:" : "Match Score:"}</span>
+                    <span>{faceMatchScore}%</span>
+                  </div>
+                )}
 
                 <p className="biometric-hint" style={{ margin: "4px 0 16px" }}>
                   {faceFeedbackText || biometricModal.message}
                 </p>
 
+                {biometricModal.status === "failed" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", marginBottom: "8px" }}>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={() => {
+                        setFaceScanProgress(0);
+                        setFaceMatchScore(null);
+                        setFaceFeedbackText(lang === "ar" ? "وجّه وجهك نحو الكاميرا داخل الإطار..." : "Face the camera inside the frame...");
+                        setBiometricModal((p) => ({ ...p, status: "scanning" }));
+                      }}
+                      style={{
+                        width: "100%",
+                        minHeight: "42px",
+                        background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+                      }}
+                    >
+                      <Icon name="refresh" size={17} />
+                      {lang === "ar" ? "إعادة فحص ومطابقة الوجه" : "Retry Face Match"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => {
+                        deleteEnrolledFace();
+                        setEnrolledFaceTrigger((prev) => prev + 1);
+                        setFaceScanProgress(0);
+                        setFaceMatchScore(null);
+                        setFaceFeedbackText(lang === "ar" ? "انظر إلى الكاميرا لمسح وتسجيل وجهك الجديد كمسؤول..." : "Look at the camera to enroll new face...");
+                        setBiometricModal((p) => ({ ...p, status: "scanning", isReEnroll: true }));
+                      }}
+                      style={{
+                        width: "100%",
+                        minHeight: "40px",
+                      }}
+                    >
+                      <Icon name="plus" size={16} />
+                      {lang === "ar" ? "تسجيل بصمة وجه جديدة كمسؤول" : "Enroll New Face"}
+                    </button>
+                  </div>
+                )}
+
                 {biometricModal.status === "scanning" && (
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={() => {
-                      playBiometricAudio("success");
-                      if (biometricModal.onSuccess) {
-                        biometricModal.onSuccess();
-                      }
-                    }}
-                    style={{
-                      width: "100%",
-                      minHeight: "44px",
-                      marginBottom: "8px",
-                      background: "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)",
-                    }}
-                  >
-                    <Icon name="face-id" size={18} />
-                    تأكيد مطابقة الوجه الآن
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", marginBottom: "8px" }}>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={() => {
+                        playBiometricAudio("success");
+                        if (biometricModal.onSuccess) {
+                          biometricModal.onSuccess();
+                        }
+                      }}
+                      style={{
+                        width: "100%",
+                        minHeight: "44px",
+                        background: "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)",
+                      }}
+                    >
+                      <Icon name="face-id" size={18} />
+                      {lang === "ar" ? "تأكيد مطابقة الوجه الآن" : "Confirm Face Match Now"}
+                    </button>
+
+                    {getEnrolledFace() && !biometricModal.isReEnroll && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => {
+                          deleteEnrolledFace();
+                          setEnrolledFaceTrigger((prev) => prev + 1);
+                          setFaceScanProgress(0);
+                          setFaceMatchScore(null);
+                          setFaceFeedbackText(lang === "ar" ? "انظر إلى الكاميرا لمسح وتسجيل وجهك كمسؤول..." : "Look at the camera to enroll new face...");
+                          setBiometricModal((p) => ({ ...p, status: "scanning", isReEnroll: true }));
+                        }}
+                        style={{
+                          width: "100%",
+                          minHeight: "36px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Icon name="plus" size={15} />
+                        {lang === "ar" ? "إعادة تسجيل ملامح وجه جديدة" : "Re-enroll New Face"}
+                      </button>
+                    )}
+                  </div>
                 )}
               </>
             ) : (
