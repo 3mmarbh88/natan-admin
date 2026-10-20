@@ -1225,53 +1225,46 @@ function App() {
       ? "التحقق من بصمة الوجه (Face ID)"
       : "التحقق من بصمة الإصبع"
   ): Promise<boolean> {
-    // 1. Native Capacitor on Android/iOS
-    if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
-      try {
-        await BiometricAuth.authenticate({
-          reason,
-          cancelTitle: "إلغاء",
-          androidTitle: mode === "face" ? "NATAN ADMIN - بصمة الوجه" : "NATAN ADMIN - بصمة الإصبع",
-          androidSubtitle: mode === "face" ? "انظر إلى شاشة الهاتف للتحقق" : "استخدم مستشعر البصمة للمتابعة",
-          androidConfirmationRequired: false,
-          allowDeviceCredential: true,
-          androidBiometryStrength: (mode === "face" ? "weak" : "strong") as any,
-        });
-        return true;
-      } catch (err: any) {
-        if (err?.code === "userCancel" || err?.code === "systemCancel") {
-          throw new Error("تم إلغاء التحقق");
-        }
-        console.warn("Capacitor biometric fallback to interactive UI:", err);
-      }
+    const isNative = typeof window !== "undefined" &&
+      !!(window as any).Capacitor?.isNativePlatform?.();
+
+    if (!isNative) {
+      throw new Error(lang === "ar"
+        ? "التحقق الحيوي متاح داخل تطبيق أندرويد فقط. افتح التطبيق المثبت على الهاتف."
+        : "Biometric authentication is available only in the installed Android app.");
     }
 
-    // 2. Interactive In-App Biometric Modal with Live Camera Face Matching or Touch ID Sensor
-    return new Promise((resolve) => {
-      setBiometricModal({
-        isOpen: true,
-        mode,
-        status: "scanning",
-        message:
-          mode === "face"
-            ? (lang === "ar" ? "انظر إلى الكاميرا وضَع وجهك داخل الإطار للمطابقة البيومترية..." : "Look into the camera to match your face profile...")
-            : (lang === "ar" ? "ضع إصبعك على مستشعر البصمة أو انقر للتحقق الفوري..." : "Touch the biometric sensor or click to verify..."),
-        onSuccess: () => {
-          setBiometricModal((prev) => ({
-            ...prev,
-            status: "success",
-            message:
-              mode === "face"
-                ? (lang === "ar" ? "تم التعرف على الوجه بنجاح (Face ID Verified)!" : "Face recognized successfully (Face ID Verified)!")
-                : (lang === "ar" ? "تم التحقق من بصمة الإصبع بنجاح (Touch ID Verified)!" : "Fingerprint verified successfully (Touch ID Verified)!"),
-          }));
-          setTimeout(() => {
-            setBiometricModal((prev) => ({ ...prev, isOpen: false }));
-            resolve(true);
-          }, 600);
-        },
+    try {
+      const availability = await BiometricAuth.checkBiometry();
+      if (!availability.isAvailable) {
+        throw new Error(lang === "ar"
+          ? "لا توجد بصمة وجه أو بصمة حيوية مسجلة ومتاحة للتطبيق. فعّلها من إعدادات الهاتف أولاً."
+          : "No enrolled biometric is available to apps. Set it up in your phone settings first.");
+      }
+      if (mode === "fingerprint" && !availability.strongBiometryIsAvailable) {
+        throw new Error(lang === "ar"
+          ? "بصمة الإصبع القوية غير متاحة لهذا التطبيق على هذا الجهاز."
+          : "Strong fingerprint authentication is not available to this app on this device.");
+      }
+
+      await BiometricAuth.authenticate({
+        reason,
+        cancelTitle: "إلغاء",
+        androidTitle: "NATAN Admin - " + (mode === "face" ? "بصمة الوجه" : "بصمة الإصبع"),
+        androidSubtitle: mode === "face"
+          ? "تحقق من هويتك باستخدام التحقق الحيوي في أندرويد"
+          : "استخدم مستشعر البصمة للتحقق",
+        androidConfirmationRequired: false,
+        allowDeviceCredential: false,
+        androidBiometryStrength: (mode === "face" ? "weak" : "strong") as any,
       });
-    });
+      return true;
+    } catch (err: any) {
+      if (err?.code === "userCancel" || err?.code === "systemCancel") {
+        throw new Error("تم إلغاء التحقق");
+      }
+      throw err;
+    }
   }
 
   async function handleBiometricLogin(mode: "face" | "fingerprint" = "face") {
@@ -1281,38 +1274,39 @@ function App() {
     try {
       await triggerBiometricAuth(mode);
 
-      // Authenticate session seamlessly
-      let token = localStorage.getItem("natan_admin_token");
-      const savedUsername = localStorage.getItem("natan_biometric_username") || username.trim() || "admin";
-      const savedPassword = localStorage.getItem("natan_biometric_pass") || password || "admin";
+      // Biometrics unlock only an existing, valid server session.
+      // Never create a local/demo token or bypass server authentication.
+      const savedUsername = localStorage.getItem("natan_biometric_username") || username.trim();
+      let sessionActive = false;
+      try {
+        await verifyAdminSession();
+        sessionActive = true;
+      } catch {
+        sessionActive = false;
+      }
 
-      if (!token) {
-        try {
-          await adminLogin(savedUsername, savedPassword);
-        } catch {
-          token = "demo_admin_jwt_local";
-          localStorage.setItem("natan_admin_token", token);
-        }
+      if (!sessionActive) {
+        throw new Error(lang === "ar"
+          ? "انتهت جلسة المسؤول. سجّل الدخول بكلمة المرور أولاً ثم استخدم الدخول الحيوي."
+          : "The admin session has expired. Sign in with your password first, then use biometric login.");
       }
 
       localStorage.setItem("natan_biometric_username", savedUsername);
-      localStorage.setItem("natan_biometric_pass", savedPassword);
       localStorage.setItem("natan_biometric_enabled", "true");
+      localStorage.removeItem("natan_biometric_pass");
       setBiometricEnabled(true);
       setUsername(savedUsername);
+      setPassword("");
       setLoggedIn(true);
 
-      showToast(
-        "success",
-        mode === "face"
-          ? (lang === "ar" ? "تمت مطابقة بصمة الوجه بالكاميرا وتسجيل الدخول بنجاح" : "Face ID camera matched & signed in successfully")
-          : (lang === "ar" ? "تم التحقق من بصمة الإصبع وتسجيل الدخول بنجاح" : "Touch ID verified & signed in successfully")
-      );
+      showToast("success", mode === "face"
+        ? (lang === "ar" ? "تم التحقق الحيوي من الوجه وتأكيد جلسة المسؤول بنجاح" : "Face biometric verified and admin session confirmed")
+        : (lang === "ar" ? "تم التحقق الحيوي وتأكيد جلسة المسؤول بنجاح" : "Biometric verified and admin session confirmed"));
+
+      void loadData();
     } catch (err: any) {
       console.error("Biometric login error:", err);
-      if (err?.message !== "تم إلغاء التحقق") {
-        setError(err?.message || (lang === "ar" ? "فشل التحقق البيومتري" : "Biometric verification failed"));
-      }
+      setError(err?.message || (lang === "ar" ? "فشل التحقق الحيوي" : "Biometric verification failed"));
     } finally {
       setBiometricLoading(false);
     }
@@ -1338,11 +1332,7 @@ function App() {
       );
 
       if (rememberBiometric) {
-        localStorage.setItem(
-          "natan_biometric_pass",
-          password
-        );
-        localStorage.setItem(
+localStorage.setItem(
           "natan_biometric_enabled",
           "true"
         );
@@ -1376,6 +1366,9 @@ function App() {
       setLoginLoading(false);
     }
   }
+
+  // Remove legacy plaintext biometric password from older app versions.
+  localStorage.removeItem("natan_biometric_pass");
 
   function handleLogout() {
     adminLogout();
