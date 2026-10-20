@@ -4588,22 +4588,23 @@ localStorage.setItem(
                   <button
                     type="button"
                     className="secondary-button"
-                    onClick={async () => {
-                      try {
-                        await triggerBiometricAuth(
-                          "face",
-                          "اختبار مستشعر بصمة الوجه (Face ID)"
-                        );
-                        showToast(
-                          "success",
-                          "تم التحقق بنجاح! ميزة بصمة الوجه تعمل بكفاءة عالية."
-                        );
-                      } catch (err: any) {
-                        showToast(
-                          "error",
-                          err?.message || "تم إلغاء فحص بصمة الوجه"
-                        );
-                      }
+                    onClick={() => {
+                      setFaceScanProgress(0);
+                      setFaceMatchScore(null);
+                      setFaceFeedbackText("وجّه وجهك نحو الكاميرا مع إضاءة جيدة.");
+                      setBiometricModal({
+                        isOpen: true,
+                        mode: "face",
+                        status: "scanning",
+                        message: "انظر إلى الكاميرا للتحقق من بصمة الوجه (Face ID)",
+                        onSuccess: () => {
+                          setBiometricModal((prev) => ({ ...prev, isOpen: false }));
+                          showToast(
+                            "success",
+                            "نجح اختبار الكاميرا والتحقق الحيوي الآمن من أندرويد."
+                          );
+                        },
+                      });
                     }}
                   >
                     <Icon
