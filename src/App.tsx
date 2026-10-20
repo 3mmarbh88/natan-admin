@@ -1367,9 +1367,6 @@ localStorage.setItem(
     }
   }
 
-  // Remove legacy plaintext biometric password from older app versions.
-  localStorage.removeItem("natan_biometric_pass");
-
   function handleLogout() {
     adminLogout();
 
